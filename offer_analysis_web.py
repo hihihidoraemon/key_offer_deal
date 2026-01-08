@@ -1020,7 +1020,6 @@ def main():
         """)
         
         st.header("📊 系统信息")
-        st.success(f"目标调试Offer: {TARGET_OFFER_ID}")
         st.success("支持Affiliate波动原因分析")
     
     # 主内容区
