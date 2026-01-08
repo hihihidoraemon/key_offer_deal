@@ -988,7 +988,7 @@ def get_excel_download_link(final_df, todo_df, latest_date):
 
 # ==================== Streamlit主界面 ====================
 def main():
-    st.markdown('<div class="main-header">📊 Offer数据分析系统（网页版）</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-header">📊 重点预算分析，每天下午5点前必须更新完今日待办事项进度</div>', unsafe_allow_html=True)
     
     # 侧边栏
     with st.sidebar:
@@ -1011,10 +1011,12 @@ def main():
         
         st.header("⚙️ 分析规则")
         st.info("""
-        - 规则1：最新无流水+次新有流水
-        - 规则2：Pause状态+收入波动显著  
-        - 规则3：ACTIVE状态+预算空间不足
-        - 规则4-6：Affiliate优化规则
+        - 规则1：预算PAUSE，最新一天无流水，次新一天流水>=10美金，排查突然停止流水的Offer
+        - 规则2：状态为"Pause"，且最新一天流水≥10美金，且与次新一天流水差绝对值≥10美金，监控暂停状态的异常收入波动，防止误暂停。 
+        - 规则3：状态为"ACTIVE"，且预算空间<0，状态为"ACTIVE"，且预算空间<0请询问广告主是否有预算增加空间
+        - 规则4：状态为"ACTIVE"，预算空间>0，且Affiliate流水变化：差值绝对值≤5美金或流水增长≥5美金，激励高潜力Affiliate加大投放，提升预算消耗。
+        - 规则5：​状态为"ACTIVE"，预算空间>0，且Affiliate流水减少>5美金，排查收入下降根源，及时修复流量下滑
+        - 规则6：​状态为"ACTIVE"，预算空间>0，且广告主类型与Affiliate类型匹配，开拓新流量来源
         """)
         
         st.header("📊 系统信息")
