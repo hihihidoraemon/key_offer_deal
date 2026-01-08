@@ -971,7 +971,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         progress_bar.progress(100)
         status_text.text("🎉 处理完成！")
     
-    return final_offer_analysis, todo_df, latest_date
+    return final_offer_analysis, enhanced_todo_df, latest_date
 
 # ==================== 文件下载功能 ====================
 def get_excel_download_link(final_df, todo_df, latest_date):
@@ -979,7 +979,7 @@ def get_excel_download_link(final_df, todo_df, latest_date):
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         final_df.to_excel(writer, sheet_name='Offer Analysis', index=False)
-        todo_df.to_excel(writer, sheet_name='预算待办事项', index=False)
+        enhanced_todo_df.to_excel(writer, sheet_name='预算待办事项', index=False)
     output.seek(0)
     b64 = base64.b64encode(output.read()).decode()
     filename = f"offer_analysis_{latest_date.strftime('%Y%m%d')}.xlsx"
