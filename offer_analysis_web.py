@@ -859,9 +859,9 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
             
             # 类型匹配判断
             match_flag = False
-            if advertiser_type == 'xdj流量' and aff_type == 'xdj流量':
+            if advertiser_type == 'xdj流量' and aff_type in('xdj流量','xdj流量/inapp流量'):
                 match_flag = True
-            elif advertiser_type == 'xdj流量/inapp流量' and aff_type == 'inapp流量':
+            elif advertiser_type == 'xdj流量/inapp流量' and aff_type in('inapp流量','xdj流量/inapp流量'):
                 match_flag = True
             
             # 触发规则6候选
