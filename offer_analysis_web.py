@@ -54,31 +54,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-BLACKLIST_RECORDS = []
-def load_blacklist_from_excel(blacklist_df):
-    """从黑名单DataFrame加载黑名单配置"""
-    try:
-        # 确保列名正确
-        if 'Advertiser' not in blacklist_df.columns or 'Affiliate' not in blacklist_df.columns:
-            st.error("❌ 黑名单表格必须包含'Advertiser'和'Affiliate'两列")
-            return []
-        
-        # 转换为字典列表格式
-        blacklist_records = []
-        for _, row in blacklist_df.iterrows():
-            advertiser = str(row['Advertiser']).strip() if pd.notna(row['Advertiser']) else ''
-            affiliate = str(row['Affiliate']).strip() if pd.notna(row['Affiliate']) else ''
-            if advertiser or affiliate:  # 至少有一个字段不为空
-                blacklist_records.append({
-                    'advertiser': advertiser,
-                    'affiliate': affiliate
-                })
-        
-        st.success(f"✅ 成功加载 {len(blacklist_records)} 条黑名单规则")
-        return blacklist_records
-    except Exception as e:
-        st.warning(f"⚠️ 处理黑名单数据失败，将使用空黑名单配置: {str(e)}")
-        return []
+
 #上下游基础信息
 ADVERTISER_TYPE_MAP = {
     '[110001]APPNEXT': 'xdj流量/inapp流量',
@@ -160,6 +136,31 @@ RULE5_REVENUE_DIFF_THRESHOLD = -5
 TARGET_OFFER_ID = 92054       # 仅调试该Offer
 
 
+# 全局变量，用于存储从Excel读取的黑名单配置
+BLACKLIST_RECORDS = []
+
+def load_blacklist_from_excel(blacklist_df):
+    """从Excel黑名单表加载黑名单配置"""
+    try:
+        if 'Advertiser' not in blacklist_df.columns or 'Affiliate' not in blacklist_df.columns:
+            st.error("❌ 黑名单表格必须包含'Advertiser'和'Affiliate'两列")
+            return []
+        
+        blacklist_records = []
+        for _, row in blacklist_df.iterrows():
+            advertiser = str(row['Advertiser']).strip() if pd.notna(row['Advertiser']) else ''
+            affiliate = str(row['Affiliate']).strip() if pd.notna(row['Affiliate']) else ''
+            if advertiser or affiliate:
+                blacklist_records.append({
+                    'advertiser': advertiser,
+                    'affiliate': affiliate
+                })
+        
+        return blacklist_records
+    except Exception as e:
+        st.warning(f"⚠️ 处理黑名单数据失败: {str(e)}")
+        return []
+
 def is_in_blacklist(advertiser, affiliate):
     """检查广告主和Affiliate组合是否在黑名单中"""
     if not BLACKLIST_RECORDS:
@@ -169,11 +170,8 @@ def is_in_blacklist(advertiser, affiliate):
     affiliate_clean = str(affiliate).strip() if pd.notna(affiliate) else ''
     
     for record in BLACKLIST_RECORDS:
-        # 同时匹配Advertiser和Affiliate
-        advertiser_match = (not record['advertiser'] or  # 如果广告主为空，表示匹配所有广告主
-                          record['advertiser'] == advertiser_clean)
-        affiliate_match = (not record['affiliate'] or  # 如果Affiliate为空，表示匹配所有Affiliate
-                         record['affiliate'] == affiliate_clean)
+        advertiser_match = (not record['advertiser'] or record['advertiser'] == advertiser_clean)
+        affiliate_match = (not record['affiliate'] or record['affiliate'] == affiliate_clean)
         
         if advertiser_match and affiliate_match:
             return True
@@ -260,7 +258,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         blacklist_df = pd.read_excel(uploaded_file, sheet_name='blacklist')
         BLACKLIST_RECORDS = load_blacklist_from_excel(blacklist_df)
 
-
+        print(BLACKLIST_RECORDS)
    
         
         # 数据预处理
