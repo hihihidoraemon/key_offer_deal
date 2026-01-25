@@ -1137,20 +1137,17 @@ def main():
     # 主内容区
     st.markdown("### 📥 第一步：下载Excel模板")
     # 模板下载区域
-    col1, col2 = st.columns([1, 2])
-    
-    with col1:
-        st.markdown(get_template_download_link(), unsafe_allow_html=True)
-    
-    with col2:
-        with st.expander("📖 模板说明", expanded=True):
-            st.markdown("""
-            **模板包含：**
-            - 📊 主数据表（1-all data）
-            - ⚠️ 黑名单表（blacklist）
-            - 📝 完整字段说明
-            - 🎯 示例数据
-            """)
+    st.markdown(get_template_download_link(), unsafe_allow_html=True)
+
+    # col2 的内容（占满整行宽度）
+    with st.expander("📖 模板说明", expanded=True):
+    st.markdown("""
+    **模板包含：**
+    - 📊 主数据表（1-all data）
+    - ⚠️ 黑名单表（blacklist）
+    - 📝 完整字段说明
+    - 🎯 示例数据
+    """)
     
     # 模板使用说明
     with st.expander("📋 详细使用说明", expanded=False):
