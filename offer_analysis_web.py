@@ -235,9 +235,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         df = pd.read_excel(uploaded_file, sheet_name='1-all data')
         blacklist_df = pd.read_excel(uploaded_file, sheet_name='blacklist')
 
-    except Exception as e:
-        st.warning(f"⚠️ 读取黑名单表失败，将使用空黑名单配置: {str(e)}")
-        blacklist_df = pd.DataFrame(columns=['Advertiser', 'Affiliate'])
+   
         
         # 数据预处理
         df['Time'] = pd.to_datetime(df['Time'], errors='coerce')
