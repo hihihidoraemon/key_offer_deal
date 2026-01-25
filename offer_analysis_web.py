@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-最终版：新增Affiliate波动原因分析 + 规则6修复 + 仅92054调试
-核心改动：
-1. 在「最新一天Affiliate分析」模块加入波动原因计算
-2. 补全波动分析依赖的变量定义（避免报错）
-3. 保留所有原逻辑/结构/调试规则
-"""
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -60,74 +54,79 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ==================== 配置参数（保留原配置） ====================
+#上下游基础信息
 ADVERTISER_TYPE_MAP = {
     '[110001]APPNEXT': 'xdj流量/inapp流量',
+    '[110006]APPNEXT-ONLINE': 'xdj流量/inapp流量',
+    '[110035]Jolibox_Appnext_Online': 'xdj流量/inapp流量',
+    '[110047]Jolibox_Appnext_Online_New': 'xdj流量/inapp流量',
     '[110021]flymobi': 'xdj流量',
     '[110045]dolphine': 'xdj流量',
-    '[110029]mobpower-xdj': 'xdj流量',
+    '[110029]mobpower_xdj': 'xdj流量',
+    '[110028]mobpower': 'xdj流量/inapp流量',
     '[110048]alto': 'xdj流量',
-    '[110022]imxbidding-xdj': 'xdj流量',
+    '[110022]imxbidding_xdj': 'xdj流量',
+    '[110016]Imxbidding': 'xdj流量/inapp流量',
     '[110031]mobvista': 'xdj流量',
     '[110010]Leapmob': 'xdj流量',
     '[110036]Viking': 'xdj流量',
     '[110020]cchange': 'xdj流量',
-    '[110006]APPNEXT-ONLINE': 'xdj流量/inapp流量',
     '[110023]bidmatrix': 'xdj流量',
     '[110012]Smartconnect': 'xdj流量/inapp流量',
     '[110050]Joymobi_new': 'xdj流量/inapp流量',
     '[110039]Seanear': 'xdj流量',
     '[110025]melodong': 'xdj流量',
     '[110008]Shareit': 'xdj流量',
-    '[110019]Bytemobi': 'xdj流量/inapp流量',
-    '[110016]Imxbidding': 'xdj流量/inapp流量',
-    '[110017]Gridads': 'xdj流量',
-    '[110028]mobpower': 'xdj流量/inapp流量',
+    '[110037]Shareit_xdj': 'xdj流量',
+    '[110019]Bytemobi': 'xdj流量/inapp流量',   
+    '[110017]Gridads': 'xdj流量',    
     '[110034]Joymobi': 'xdj流量',
     '[110051]Elementallink': 'xdj流量',
     '[110040]Ricefruit': 'xdj流量',
-    '[110037]Shareit-xdj': 'xdj流量',
     '[110049]AutumnAds': 'xdj流量',
     '[110011]Versemedia': 'xdj流量',
-    '[110047]Jolibox_Appnext_Online_New': 'xdj流量/inapp流量'
+    '[110054]acshare': 'xdj流量',
+    '[110059]Flowbox': 'xdj流量'
 }
 
 AFFILIATE_TYPE_MAP = {
     '[101]Melodong': 'inapp流量',
     '[106]wldon': 'inapp流量',
-    '[131]wldon-new': 'inapp流量',
-    '[115]synjoy': 'xdj流量',
+    '[131]wldon_new': 'inapp流量',
+    '[124]wldon_xdj': 'xdj流量',
+    '[115]synjoy_xdj': 'xdj流量',
     '[104]versemedia': 'inapp流量',
-    '[122]melodong-xdj': 'xdj流量',
-    '[111]flowbox': 'xdj流量',
+    '[122]melodong_xdj': 'xdj流量',
+    '[111]flowbox_xdj': 'xdj流量',
     '[114]imxbidding': 'inapp流量/xdj流量',
-    '[117]ioger-own': 'inapp流量',
-    '[139]Versemedia-xdj': 'xdj流量',
-    '[143]Alto': 'xdj流量',
-    '[137]Seanear-xdj': 'xdj流量',
+    '[117]ioger_own': 'inapp流量',
+    '[139]Versemedia_xdj': 'xdj流量',
+    '[143]Alto_xdj': 'xdj流量',
+    '[137]Seanear_xdj': 'xdj流量',
     '[107]zhizhen': 'inapp流量',
-    '[142]magicbeans-xdj': 'xdj流量',
+    '[120]magicbeans': 'inapp流量',
+    '[142]magicbeans_xdj': 'xdj流量',
     '[113]ioger': 'inapp流量',
     '[123]bytemobi': 'inapp流量',
-    '[144]bidderdesk_xdj': 'xdj流量',
-    '[134]ioger-xdj': 'xdj流量',
+    '[134]ioger_xdj': 'xdj流量',
     '[126]seanear': 'inapp流量',
-    '[135]bidderdesk': 'inapp流量',
-    '[120]magicbeans': 'inapp流量',
-    '[141]Joymobi': 'xdj流量',
-    '[136]Bytemobi-xdj': 'xdj流量',
-    '[124]wldon-xdj': 'xdj流量',
-    '[132]Viking': 'xdj流量'
+    '[141]Joymobi_xdj': 'xdj流量',
+    '[136]Bytemobi_xdj': 'xdj流量',    
+    '[132]Viking_xdj': 'xdj流量',
+    '[155]acshare_xdj':'xdj流量',
+    '[144]bidderdesk_xdj_2':'xdj流量',
+    '[135]bidderdesk_xdj_1':'xdj流量'
 }
 
+#黑名单机制
 BLACKLIST_CONFIG = {
-    'advertiser_blacklist': ['[110008]Shareit'],
-    'affiliate_blacklist': ['[108]Baidu (Hong Kong) Limited', '[128]shareit','[113]ioger','[135]bidderdesk'
-    '[144]bidderdesk_xdj']}
+    'advertiser_blacklist': ['[110008]Shareit','[110037]Shareit_xdj','[110040]Ricefruit','[110047]Jolibox_Appnext_Online_New','[110049]AutumnAds','[110028]mobpower','[110016]Imxbidding']
+    'affiliate_blacklist': ['[108]Baidu (Hong Kong) Limited', '[128]shareit','[113]ioger','[144]bidderdesk_xdj_2'
+    '[135]bidderdesk_xdj_1']}
 
 
 
-# 阈值配置（保留原值）
+# 阈值配置
 OFFER_DIFF_THRESHOLD = 10    
 AFFILIATE_DIFF_THRESHOLD = 5 
 RULE4_REVENUE_DIFF_ABS = 5    # 差值绝对值≤5
@@ -135,13 +134,28 @@ RULE4_REVENUE_DIFF_UP = 5     # 流水增长≥5
 RULE5_REVENUE_DIFF_THRESHOLD = -5  
 TARGET_OFFER_ID = 92054       # 仅调试该Offer
 
-# ==================== 工具函数（保留原函数） ====================
+
 def is_in_blacklist(advertiser, affiliate):
-    if advertiser in BLACKLIST_CONFIG['advertiser_blacklist']:
-        return True
-    if pd.notna(affiliate) and affiliate in BLACKLIST_CONFIG['affiliate_blacklist']:
-        return True
+    """检查广告主和Affiliate组合是否在黑名单中"""
+    if not BLACKLIST_RECORDS:
+        return False
+    
+    advertiser_clean = str(advertiser).strip() if pd.notna(advertiser) else ''
+    affiliate_clean = str(affiliate).strip() if pd.notna(affiliate) else ''
+    
+    for record in BLACKLIST_RECORDS:
+        # 同时匹配Advertiser和Affiliate
+        advertiser_match = (not record['advertiser'] or  # 如果广告主为空，表示匹配所有广告主
+                          record['advertiser'] == advertiser_clean)
+        affiliate_match = (not record['affiliate'] or  # 如果Affiliate为空，表示匹配所有Affiliate
+                         record['affiliate'] == affiliate_clean)
+        
+        if advertiser_match and affiliate_match:
+            return True
+    
     return False
+
+
 
 def parse_affiliate_rate_text(text):
     affiliate_list = []
@@ -155,6 +169,7 @@ def parse_affiliate_rate_text(text):
             if affiliate_part:
                 affiliate_list.append(affiliate_part)
     return affiliate_list
+
 
 def get_affiliate_type(affiliate_name):
     if pd.isna(affiliate_name):
@@ -216,7 +231,18 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
     try:
         # 读取上传的文件
         excel_file = pd.ExcelFile(uploaded_file)
-        df = pd.read_excel(uploaded_file, sheet_name=excel_file.sheet_names[0])
+        df = pd.read_excel(uploaded_file, sheet_name=‘1-all data’)
+
+
+        if 'blacklist' in excel_file.sheet_names:
+                blacklist_df = pd.read_excel(uploaded_file, sheet_name='blacklist')
+                st.info(f"✅ 成功读取黑名单表，共 {len(blacklist_df)} 条记录")
+            else:
+                st.warning("⚠️ 未找到名为'blacklist'的工作表，将使用空黑名单配置")
+                blacklist_df = pd.DataFrame(columns=['Advertiser', 'Affiliate'])
+        except Exception as e:
+            st.warning(f"⚠️ 读取黑名单表失败，将使用空黑名单配置: {str(e)}")
+            blacklist_df = pd.DataFrame(columns=['Advertiser', 'Affiliate'])
         
         # 数据预处理
         df['Time'] = pd.to_datetime(df['Time'], errors='coerce')
@@ -246,7 +272,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         print(f"读取数据失败：{str(e)}")
         return None
 
-    # 2. 筛选符合条件的Offer ID（保留原逻辑）
+    # 2. 筛选符合条件的Offer ID
     print("\n=== 2. 筛选符合条件的Offer ID ===")
     daily_offer_revenue = df.groupby(['Time', 'Offer ID'])['Total Revenue'].sum().reset_index()
     daily_offer_revenue.columns = ['Time', 'Offer ID', 'Daily_Revenue']
@@ -254,7 +280,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
     qualified_df = df[df['Offer ID'].isin(qualified_offer_ids)].copy()
     print(f"符合条件的Offer ID数量：{len(qualified_offer_ids)}")
 
-    # 3. 计算Offer核心汇总指标（保留原逻辑）
+    # 3. 计算Offer核心汇总指标
     print("\n=== 3. 计算Offer汇总指标 ===")
     offer_summary = qualified_df.groupby('Offer ID').agg({
         'Total Clicks': 'sum',
@@ -274,7 +300,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         'App ID', 'GEO', 'Total caps', 'Status'
     ]
 
-    # 4. 按Affiliate计算收入占比（保留原逻辑）
+    # 4. 按Affiliate计算收入占比
     print("\n=== 4. 计算Affiliate收入占比 ===")
     affiliate_revenue = qualified_df.groupby(['Offer ID', 'Affiliate'])['Total Revenue'].sum().reset_index()
     affiliate_revenue.columns = ['Offer ID', 'Affiliate', 'affilate_revenue']
@@ -309,7 +335,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
     ).reset_index()
     affiliate_summary.columns = ['Offer ID', 'affilate_revenue_rate_all']
 
-    # 5. 计算最新两天分别的数据（保留原逻辑）
+    # 5. 计算最新两天分别的数据
     print("\n=== 5. 计算最新两天数据 ===")
     latest_mask = qualified_df['Time'].dt.date == latest_date
     latest_date_data = qualified_df[latest_mask].copy()
@@ -345,7 +371,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
     ]
     second_summary.columns = ['Offer ID'] + second_fields
 
-    # 6. 最新一天Affiliate分析（新增波动原因计算）
+    # 6. 最新一天Affiliate分析
     print("\n=== 6. 最新一天Affiliate分析 ===")
     latest_affiliate_summary = pd.DataFrame({'Offer ID': offer_summary['Offer ID'], 'latest_affilate_revenue_rate_all': ''})
     latest_day_df = qualified_df[qualified_df['Time'].dt.date == latest_date].copy()
@@ -438,7 +464,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         )
         affiliate_revenue_diff['cr_change'] = affiliate_revenue_diff['cr_latest'] - affiliate_revenue_diff['cr_second']
         
-        # 3. 筛选显著影响的Affiliate（用户提供的代码）
+        # 3. 筛选显著影响的Affiliate
         significant_diff = affiliate_revenue_diff[affiliate_revenue_diff['diff_affiliate_abs'] >= AFFILIATE_DIFF_THRESHOLD].copy()
         
         if len(significant_diff) > 0:
@@ -533,7 +559,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         influence_affiliate_summary = pd.DataFrame({'Offer ID': offer_summary['Offer ID'], 'influence_affiliate': ''})
     # ==================== 新增结束 ====================
 
-    # 8. 生成待办事项（保留原逻辑，仅规则6已修复）
+    # 8. 生成待办事项
     print("\n=== 8. 生成待办事项 ===")
     todo_base_data = offer_summary.merge(affiliate_summary, on='Offer ID', how='left').fillna({'affilate_revenue_rate_all': ''})
     todo_base_data = todo_base_data.merge(latest_summary, on='Offer ID', how='left').fillna(0)
@@ -552,7 +578,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
     triggered_123_offer_ids = set()
     triggered_45_affiliate = set()
 
-    # 规则3（保留原逻辑）
+    # 规则3
     print("  处理规则3：ACTIVE+预算空间<0...")
     rule3_data = todo_base_data[
         (todo_base_data['Status'].str.upper() == 'ACTIVE') & 
@@ -587,7 +613,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         })
     triggered_123_offer_ids.update(rule3_data['Offer ID'].tolist())
     
-    # 规则1（保留原逻辑）
+    # 规则1
     print("  处理规则1：最新无流水+次新有流水...")
     rule1_data = todo_base_data[
         (todo_base_data[f'{latest_date_str}_total_revenue'] == 0) & 
@@ -613,7 +639,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         })
     triggered_123_offer_ids.update(rule1_data['Offer ID'].tolist())
     
-    # 规则2（保留原逻辑）
+    # 规则2
     print("  处理规则2：Pause+收入波动显著...")
     rule2_data = todo_base_data[
         (todo_base_data['Status'].str.upper() == 'PAUSE') & 
@@ -640,13 +666,13 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         })
     triggered_123_offer_ids.update(rule2_data['Offer ID'].tolist())
     
-    # 规则4（保留原逻辑）
+    # 规则4
     print("  处理规则4：ACTIVE+预算>0+流水差值≤5或增长≥5...")
     rule4_offer_data = todo_base_data[
         (todo_base_data['Status'].str.upper() == 'ACTIVE') & 
         (todo_base_data['预算空间'] > 0) & 
         (~todo_base_data['Offer ID'].isin(triggered_123_offer_ids)) &
-        (~todo_base_data['Advertiser'].isin(BLACKLIST_CONFIG['advertiser_blacklist']))
+        (~todo_base_data.apply(lambda row: is_in_blacklist(row['Advertiser'], ''), axis=1))
     ].copy()
 
     print(f"  规则4初始筛选Offer数量：{len(rule4_offer_data)}")
@@ -695,13 +721,13 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
     
     print(f"  规则4最终触发数量：{rule4_count}")
     
-    # 规则5（保留原逻辑）
+    # 规则5
     print("  处理规则5：ACTIVE+预算>0+收入减少>5...")
     rule5_offer_data = todo_base_data[
-        (todo_base_data['Status'].str.upper() == 'ACTIVE') & 
-        (todo_base_data['预算空间'] > 0) & 
-        (~todo_base_data['Offer ID'].isin(triggered_123_offer_ids)) &
-        (~todo_base_data['Advertiser'].isin(BLACKLIST_CONFIG['advertiser_blacklist']))
+    (todo_base_data['Status'].str.upper() == 'ACTIVE') & 
+    (todo_base_data['预算空间'] > 0) & 
+    (~todo_base_data['Offer ID'].isin(triggered_123_offer_ids)) &
+    (~todo_base_data.apply(lambda row: is_in_blacklist(row['Advertiser'], ''), axis=1))
     ].copy()
 
     rule5_count = 0
@@ -745,7 +771,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
     
     print(f"  规则5最终触发数量：{rule5_count}")
     
-    # ========== 规则6：ACTIVE+预算充足+类型匹配（优化版：按组合筛选高流水Offer） ==========
+    # ========== 规则6：ACTIVE+预算充足+类型匹配 ==========
     # 步骤1：从AFFILIATE_TYPE_MAP中提取所有Affiliate名称（无视流水）
     all_affs_from_map = list(AFFILIATE_TYPE_MAP.keys())
     
@@ -754,10 +780,10 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         (todo_base_data['Status'].str.upper() == 'ACTIVE') &
         (todo_base_data['预算空间'] > 0) &
         (~todo_base_data['Offer ID'].isin(triggered_123_offer_ids)) &
-        (~todo_base_data['Advertiser'].isin(BLACKLIST_CONFIG['advertiser_blacklist']))
+        (~todo_base_data.apply(lambda row: is_in_blacklist(row['Advertiser'], ''), axis=1))
     ].copy()
     
-    # 新增：计算每个offerid过去30天的total revenue
+    # 计算每个offerid过去30天的total revenue
     offer_30d_revenue = qualified_df.groupby('Offer ID')['Total Revenue'].sum().reset_index()
     offer_30d_revenue.columns = ['Offer ID', 'total_revenue_30d']
     
@@ -771,7 +797,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
             app_id = offer_data['App ID'].iloc[0] if pd.notna(offer_data['App ID'].iloc[0]) else ''
             triggered_45_geo_app_aff.add((geo, app_id, aff))
     
-    # 新增：按(geo, app id, affiliate)组合筛选最高流水的Offer ID
+    #按(geo, app id, affiliate)组合筛选最高流水的Offer ID
     print("\n=== 规则6优化：按组合筛选高流水Offer ===")
     
     # 收集所有可能的规则6触发项（不立即添加到todo_list）
@@ -796,13 +822,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
                 break
         if not advertiser_type:
             continue  # 广告主无类型，跳过
-        
-        # 调试：打印92054的匹配过程
-        if offer_id == TARGET_OFFER_ID:
-            print(f"\n📌 调试Offer {TARGET_OFFER_ID} 规则6（优化版）：")
-            print(f"     - 广告主：{advertiser} | 广告主类型：{advertiser_type}")
-            print(f"     - GEO：{geo} | App ID：{app_id}")
-            print(f"     - 30天总流水：{total_revenue_30d:.2f}美金")
+
         
         # 遍历AFFILIATE_TYPE_MAP中的所有Affiliate（无视流水）
         for aff in all_affs_from_map:
@@ -845,7 +865,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
                     print(f"     - 组合键：{geo}_{app_id}_{aff}")
                     print(f"     - 30天流水：{total_revenue_30d:.2f}美金")
     
-    # 新增：按组合筛选最高流水Offer
+    # 按组合筛选最高流水Offer
     if rule6_candidates:
         # 转换为DataFrame便于处理
         candidates_df = pd.DataFrame(rule6_candidates)
@@ -892,7 +912,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
 
             
 
-    # 9. 生成最终Excel（保留原逻辑，新增波动原因列）
+    # 9. 生成最终Excel
 
     print("\n=== 9. 生成Excel文件 ===")
     final_offer_analysis = offer_summary.merge(affiliate_summary, on='Offer ID', how='left').fillna({'affilate_revenue_rate_all': ''})
