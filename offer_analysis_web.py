@@ -234,7 +234,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         excel_file = pd.ExcelFile(uploaded_file)
         df = pd.read_excel(uploaded_file, sheet_name='1-all data')
         blacklist_df = pd.read_excel(uploaded_file, sheet_name='blacklist')
-        BLACKLIST_RECORDS = load_blacklist_from_excel(blacklist_df)
+        BLACKLIST_RECORDS = is_in_blacklist(blacklist_df)
 
 
    
