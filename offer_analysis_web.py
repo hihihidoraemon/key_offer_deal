@@ -120,7 +120,7 @@ AFFILIATE_TYPE_MAP = {
 
 #黑名单机制
 BLACKLIST_CONFIG = {
-    'advertiser_blacklist': ['[110008]Shareit','[110037]Shareit_xdj','[110040]Ricefruit','[110047]Jolibox_Appnext_Online_New','[110049]AutumnAds','[110028]mobpower','[110016]Imxbidding']
+    'advertiser_blacklist': ['[110008]Shareit','[110037]Shareit_xdj','[110040]Ricefruit','[110047]Jolibox_Appnext_Online_New','[110049]AutumnAds','[110028]mobpower','[110016]Imxbidding'],
     'affiliate_blacklist': ['[108]Baidu (Hong Kong) Limited', '[128]shareit','[113]ioger','[144]bidderdesk_xdj_2'
     '[135]bidderdesk_xdj_1']}
 
