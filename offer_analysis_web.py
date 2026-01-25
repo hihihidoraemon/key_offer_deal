@@ -1137,7 +1137,7 @@ def main():
     # 主内容区
     st.markdown("### 📥 第一步：下载Excel模板")
     # 模板下载区域
-    col1, col2 = st.columns([2, 1])
+    col1, col2 = st.columns([1, 2])
     
     with col1:
         st.markdown(get_template_download_link(), unsafe_allow_html=True)
