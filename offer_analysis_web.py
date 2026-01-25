@@ -245,7 +245,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
     """
     网页版处理函数，基于原脚本逻辑
     """
-    
+    global BLACKLIST_RECORDS
     # 更新进度
     if progress_bar and status_text:
         progress_bar.progress(10)
