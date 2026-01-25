@@ -61,8 +61,8 @@ def create_template_data():
     main_data = pd.DataFrame({})
     # 黑名单表模板
     blacklist_data = pd.DataFrame({
-        'Advertiser': ['','','','','','[110008]Shareit','[110037]Shareit_xdj','[110040]Ricefruit','[110047]Jolibox_Appnext_Online_New','[110049]AutumnAds','[110028]mobpower','[110016]Imxbidding','[110045]dolphine','[110045]dolphine','[110045]dolphine','[110021]flymobi','[110021]flymobi','[110021]flymobi','[110022]imxbidding_xdj','[110022]imxbidding_xdj','[110059]Flowbox'[110054]acshare],
-        'Affiliate': ['[135]bidderdesk_xdj_1','[144]bidderdesk_xdj_2','[113]ioger','[108]Baidu (Hong Kong) Limited','[128]shareit','','','','','','','','[134]ioger_xdj','[136]Bytemobi_xdj','[142]magicbeans_xdj','[134]ioger_xdj','[142]magicbeans_xdj','[136]Bytemobi_xdj','[114]imxbidding','[157]imxbidding_xdj','[111]flowbox_xdj']
+        'Advertiser': ['','','','','','[110008]Shareit','[110037]Shareit_xdj','[110040]Ricefruit','[110047]Jolibox_Appnext_Online_New','[110049]AutumnAds','[110028]mobpower','[110016]Imxbidding','[110045]dolphine','[110045]dolphine','[110045]dolphine','[110021]flymobi','[110021]flymobi','[110021]flymobi','[110022]imxbidding_xdj','[110022]imxbidding_xdj','[110059]Flowbox','[110054]acshare'],
+        'Affiliate': ['[135]bidderdesk_xdj_1','[144]bidderdesk_xdj_2','[113]ioger','[108]Baidu (Hong Kong) Limited','[128]shareit','','','','','','','','[134]ioger_xdj','[136]Bytemobi_xdj','[142]magicbeans_xdj','[134]ioger_xdj','[142]magicbeans_xdj','[136]Bytemobi_xdj','[114]imxbidding','[157]imxbidding_xdj','[111]flowbox_xdj','[155]acshare_xdj']
     })
     
     return main_data, blacklist_data
