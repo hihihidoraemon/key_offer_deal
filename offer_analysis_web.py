@@ -1124,7 +1124,6 @@ def main():
         # 在侧边栏也添加模板下载
         st.markdown("---")
         st.header("🎯 快速开始")
-        st.markdown(get_template_download_link(), unsafe_allow_html=True)
         st.header("⚙️ 分析规则")
         
         st.info("""
@@ -1162,7 +1161,7 @@ def main():
         st.markdown(get_template_instructions())
 
     # 文件上传区域
-    st.markdown("### 📤 第一步：上传Excel文件")
+    st.markdown("### 📤 第二步：上传Excel文件")
     
     uploaded_file = st.file_uploader(
         "选择Excel文件（支持.xlsx格式）",
