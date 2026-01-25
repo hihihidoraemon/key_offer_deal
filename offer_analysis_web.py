@@ -231,7 +231,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
     try:
         # 读取上传的文件
         excel_file = pd.ExcelFile(uploaded_file)
-        df = pd.read_excel(uploaded_file, sheet_name=‘1-all data’)
+        df = pd.read_excel(uploaded_file, sheet_name='1-all data')
 
 
         if 'blacklist' in excel_file.sheet_names:
