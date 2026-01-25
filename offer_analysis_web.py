@@ -85,7 +85,6 @@ def get_template_download_link():
     filename = "offer_analysis_template.xlsx"
     href = f'''
     <div class="template-download">
-        <h3>📥 下载Excel模板</h3>
         <p>下载包含标准格式的Excel模板文件，包含数据表和黑名单表</p>
         <a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" 
            download="{filename}" class="download-btn">
