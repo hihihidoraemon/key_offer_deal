@@ -101,7 +101,7 @@ def get_template_instructions():
 
     #### 模板结构：
     - **1-all data**工作表：主数据表，包含过去30天所有Offer数据
-    - **blacklist**工作表：黑名单配置表
+    - **blacklist**工作表：黑名单配置表，这个表不用修改
 
     #### 数据表字段说明（1-all data）：
     | 字段名 | 类型 | 说明 | 示例 |
