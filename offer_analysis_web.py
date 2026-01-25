@@ -55,6 +55,30 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 BLACKLIST_RECORDS = []
+def load_blacklist_from_excel(blacklist_df):
+    """从黑名单DataFrame加载黑名单配置"""
+    try:
+        # 确保列名正确
+        if 'Advertiser' not in blacklist_df.columns or 'Affiliate' not in blacklist_df.columns:
+            st.error("❌ 黑名单表格必须包含'Advertiser'和'Affiliate'两列")
+            return []
+        
+        # 转换为字典列表格式
+        blacklist_records = []
+        for _, row in blacklist_df.iterrows():
+            advertiser = str(row['Advertiser']).strip() if pd.notna(row['Advertiser']) else ''
+            affiliate = str(row['Affiliate']).strip() if pd.notna(row['Affiliate']) else ''
+            if advertiser or affiliate:  # 至少有一个字段不为空
+                blacklist_records.append({
+                    'advertiser': advertiser,
+                    'affiliate': affiliate
+                })
+        
+        st.success(f"✅ 成功加载 {len(blacklist_records)} 条黑名单规则")
+        return blacklist_records
+    except Exception as e:
+        st.warning(f"⚠️ 处理黑名单数据失败，将使用空黑名单配置: {str(e)}")
+        return []
 #上下游基础信息
 ADVERTISER_TYPE_MAP = {
     '[110001]APPNEXT': 'xdj流量/inapp流量',
@@ -234,7 +258,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         excel_file = pd.ExcelFile(uploaded_file)
         df = pd.read_excel(uploaded_file, sheet_name='1-all data')
         blacklist_df = pd.read_excel(uploaded_file, sheet_name='blacklist')
-        BLACKLIST_RECORDS = is_in_blacklist(blacklist_df)
+        BLACKLIST_RECORDS = load_blacklist_from_excel(blacklist_df)
 
 
    
