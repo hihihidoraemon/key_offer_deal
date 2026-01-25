@@ -1131,9 +1131,7 @@ def main():
         - 规则6：​状态为"ACTIVE"，预算空间>0，且广告主类型与Affiliate类型匹配，开拓新流量来源
         """)
         
-        st.header("📊 系统信息")
-        st.success("支持Affiliate波动原因分析")
-    
+
     # 主内容区
     st.markdown("### 📥 第一步：下载Excel模板")
     # 模板下载区域
@@ -1150,7 +1148,7 @@ def main():
         """)
     
     # 模板使用说明
-    with st.expander("📋 详细使用说明", expanded=False):
+    with st.expander("📋 模板详细使用说明", expanded=False):
         st.markdown(get_template_instructions())
 
     # 文件上传区域
