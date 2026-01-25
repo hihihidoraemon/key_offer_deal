@@ -54,7 +54,83 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ==================== 模板下载功能 ====================
+def create_template_data():
+    """创建Excel模板数据"""
+    # 主数据表模板
+    main_data = pd.DataFrame({})
+    # 黑名单表模板
+    blacklist_data = pd.DataFrame({
+        'Advertiser': ['','','','','','[110008]Shareit','[110037]Shareit_xdj','[110040]Ricefruit','[110047]Jolibox_Appnext_Online_New','[110049]AutumnAds','[110028]mobpower','[110016]Imxbidding','[110045]dolphine','[110045]dolphine','[110045]dolphine','[110021]flymobi','[110021]flymobi','[110021]flymobi','[110022]imxbidding_xdj','[110022]imxbidding_xdj','[110059]Flowbox'[110054]acshare],
+        'Affiliate': ['[135]bidderdesk_xdj_1','[144]bidderdesk_xdj_2','[113]ioger','[108]Baidu (Hong Kong) Limited','[128]shareit','','','','','','','','[134]ioger_xdj','[136]Bytemobi_xdj','[142]magicbeans_xdj','[134]ioger_xdj','[142]magicbeans_xdj','[136]Bytemobi_xdj','[114]imxbidding','[157]imxbidding_xdj','[111]flowbox_xdj']
+    })
+    
+    return main_data, blacklist_data
 
+def get_template_download_link():
+    """生成Excel模板下载链接"""
+    # 创建模板数据
+    main_data, blacklist_data = create_template_data()
+    
+    # 创建Excel文件
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        main_data.to_excel(writer, sheet_name='1-all data', index=False)
+        blacklist_data.to_excel(writer, sheet_name='blacklist', index=False)
+    
+    output.seek(0)
+    b64 = base64.b64encode(output.read()).decode()
+    
+    # 生成下载链接
+    filename = "offer_analysis_template.xlsx"
+    href = f'''
+    <div class="template-download">
+        <h3>📥 下载Excel模板</h3>
+        <p>下载包含标准格式的Excel模板文件，包含数据表和黑名单表</p>
+        <a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" 
+           download="{filename}" class="download-btn">
+           🎯 下载Excel模板
+        </a>
+    </div>
+    '''
+    return href
+
+def get_template_instructions():
+    """返回模板使用说明"""
+    return """
+    ### 📋 Excel模板使用说明
+
+    #### 模板结构：
+    - **1-all data**工作表：主数据表，包含过去30天所有Offer数据
+    - **blacklist**工作表：黑名单配置表
+
+    #### 数据表字段说明（1-all data）：
+    | 字段名 | 类型 | 说明 | 示例 |
+    |--------|------|------|------|
+    | Time | 日期 | 数据日期 | 2024-01-25 |
+    | Offer ID | 数字 | Offer唯一标识 | 92054 |
+    | Advertiser | 文本 | 广告主名称 | [110001]APPNEXT |
+    | Affiliate | 文本 | 渠道名称 | [101]Melodong |
+    | App ID | 文本 | 应用标识 | com.example.app1 |
+    | GEO | 文本 | 地区代码 | US |
+    | Total Clicks | 数字 | 总点击量 | 1000 |
+    | Total Conversions | 数字 | 总转化量 | 50 |
+    | Total Revenue | 数字 | 总收入（美元） | 500.50 |
+    | Total Profit | 数字 | 总利润（美元） | 250.25 |
+    | Total Caps | 数字 | 总预算上限 | 1000 |
+    | Status | 文本 | 状态（ACTIVE/PAUSE） | ACTIVE |
+
+    #### 黑名单表字段说明（blacklist）：
+    | 字段名 | 类型 | 说明 | 示例 |
+    |--------|------|------|------|
+    | Advertiser | 文本 | 广告主黑名单（留空表示匹配所有） | [110008]Shareit |
+    | Affiliate | 文本 | 渠道黑名单（留空表示匹配所有） | [113]ioger |
+
+    #### 使用规则：
+    - 如果Advertiser为空：匹配所有该Affiliate的记录
+    - 如果Affiliate为空：匹配所有该Advertiser的记录
+    - 如果两者都不为空：必须同时匹配Advertiser和Affiliate
+    """
 #上下游基础信息
 ADVERTISER_TYPE_MAP = {
     '[110001]APPNEXT': 'xdj流量/inapp流量',
