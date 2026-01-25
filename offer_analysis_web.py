@@ -54,6 +54,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+BLACKLIST_RECORDS = []
 #上下游基础信息
 ADVERTISER_TYPE_MAP = {
     '[110001]APPNEXT': 'xdj流量/inapp流量',
@@ -232,14 +233,8 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         # 读取上传的文件
         excel_file = pd.ExcelFile(uploaded_file)
         df = pd.read_excel(uploaded_file, sheet_name='1-all data')
+        blacklist_df = pd.read_excel(uploaded_file, sheet_name='blacklist')
 
-
-        if 'blacklist' in excel_file.sheet_names:
-                blacklist_df = pd.read_excel(uploaded_file, sheet_name='blacklist')
-                st.info(f"✅ 成功读取黑名单表，共 {len(blacklist_df)} 条记录")
-        else:
-                st.warning("⚠️ 未找到名为'blacklist'的工作表，将使用空黑名单配置")
-                blacklist_df = pd.DataFrame(columns=['Advertiser', 'Affiliate'])
     except Exception as e:
         st.warning(f"⚠️ 读取黑名单表失败，将使用空黑名单配置: {str(e)}")
         blacklist_df = pd.DataFrame(columns=['Advertiser', 'Affiliate'])
