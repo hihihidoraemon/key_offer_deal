@@ -170,11 +170,13 @@ AFFILIATE_TYPE_MAP = {
     '[106]wldon': 'inapp流量',
     '[131]wldon_new': 'inapp流量',
     '[124]wldon_xdj': 'xdj流量',
-    '[115]synjoy_xdj': 'xdj流量',
+    '[115]synjoy': 'inapp流量',
+    '[158]synjoy_xdj': 'xdj流量',
     '[104]versemedia': 'inapp流量',
     '[122]melodong_xdj': 'xdj流量',
     '[111]flowbox_xdj': 'xdj流量',
-    '[114]imxbidding': 'inapp流量/xdj流量',
+    '[114]imxbidding': 'inapp流量',
+    '[157]imxbidding_xdj': 'xdj流量',
     '[117]ioger_own': 'inapp流量',
     '[139]Versemedia_xdj': 'xdj流量',
     '[143]Alto_xdj': 'xdj流量',
@@ -192,6 +194,7 @@ AFFILIATE_TYPE_MAP = {
     '[155]acshare_xdj':'xdj流量',
     '[144]bidderdesk_xdj_2':'xdj流量',
     '[135]bidderdesk_xdj_1':'xdj流量'
+    
 }
 
 #黑名单机制
