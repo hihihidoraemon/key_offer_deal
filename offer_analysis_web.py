@@ -317,6 +317,62 @@ def get_affiliate_revenue_diff(qualified_df, offer_id, affiliate, latest_date, s
     
     return latest_rev - second_rev
 
+# ==================== 新增：收入排序计算逻辑 ====================
+def calculate_revenue_ranking(qualified_df):
+    """
+    计算收入排序：
+    - 如果是本月1号，计算所有日期的Total Revenue
+    - 否则，只计算本月所有日期的Total Revenue
+    - 按Advertiser维度汇总并降序排序
+    """
+    # 确保Time列是datetime类型
+    qualified_df = qualified_df.copy()
+    qualified_df['Time'] = pd.to_datetime(qualified_df['Time'], errors='coerce')
+    
+    # 获取数据中的最大日期（判断是否为当月1号的基准）
+    max_date = qualified_df['Time'].max()
+    is_first_day = (max_date.day == 1)
+    
+    # 筛选时间范围
+    if is_first_day:
+        # 本月1号：计算所有日期数据
+        filtered_df = qualified_df
+    else:
+        # 非本月1号：只计算本月数据
+        filtered_df = qualified_df[
+            (qualified_df['Time'].dt.year == max_date.year) & 
+            (qualified_df['Time'].dt.month == max_date.month)
+        ]
+    
+    # 1. 计算每个(Time, Offer ID, Advertiser)的总收入
+    time_offer_advertiser_revenue = filtered_df.groupby(['Time', 'Offer ID', 'Advertiser'])['Total Revenue'].sum().reset_index()
+    time_offer_advertiser_revenue.rename(columns={'Total Revenue': 'Time_Offer_Advertiser_Revenue'}, inplace=True)
+    
+    # 2. 计算每个Offer+Advertiser的累计总收入
+    offer_advertiser_revenue = time_offer_advertiser_revenue.groupby(['Offer ID', 'Advertiser'])['Time_Offer_Advertiser_Revenue'].sum().reset_index()
+    offer_advertiser_revenue.rename(columns={'Time_Offer_Advertiser_Revenue': 'Total_Revenue_By_Offer_Advertiser'}, inplace=True)
+    
+    # 3. 按Advertiser汇总总收入并排序
+    advertiser_total_revenue = offer_advertiser_revenue.groupby('Advertiser')['Total_Revenue_By_Offer_Advertiser'].sum().reset_index()
+    advertiser_total_revenue.rename(columns={'Total_Revenue_By_Offer_Advertiser': 'Advertiser_Total_Revenue'}, inplace=True)
+    # 按总收入降序排序
+    advertiser_total_revenue_sorted = advertiser_total_revenue.sort_values('Advertiser_Total_Revenue', ascending=False)
+    # 添加排序名次
+    advertiser_total_revenue_sorted['Advertiser_Rank'] = range(1, len(advertiser_total_revenue_sorted) + 1)
+    
+    # 4. 构建排序映射（Advertiser -> 排名）
+    advertiser_rank_map = dict(zip(
+        advertiser_total_revenue_sorted['Advertiser'],
+        advertiser_total_revenue_sorted['Advertiser_Rank']
+    ))
+    
+    # 5. 为每个Offer+Advertiser添加排名和广告主总收入
+    offer_advertiser_revenue['Advertiser_Rank'] = offer_advertiser_revenue['Advertiser'].map(advertiser_rank_map)
+    offer_advertiser_revenue['Advertiser_Total_Revenue'] = offer_advertiser_revenue['Advertiser'].map(
+        dict(zip(advertiser_total_revenue_sorted['Advertiser'], advertiser_total_revenue_sorted['Advertiser_Total_Revenue']))
+    )
+    
+    return offer_advertiser_revenue
 
 # ==================== 核心处理函数（适配Streamlit） ====================
 def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
@@ -1081,6 +1137,20 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
     
     # 去重
     enhanced_todo_df = enhanced_todo_df.drop_duplicates(subset=['Offer ID', 'Affiliate', '待办事项'])
+
+    revenue_ranking_df = calculate_revenue_ranking(qualified_df)
+
+    offer_summary = offer_summary.merge(
+        revenue_ranking_df[['Offer ID', 'Advertiser_Rank', 'Advertiser_Total_Revenue', 'Total_Revenue_By_Offer_Advertiser']],
+        on=['Offer ID', 'Advertiser'],
+        how='left'
+    )
+
+    enhanced_todo_df = enhanced_todo_df.merge(
+        revenue_ranking_df[['Offer ID', 'Advertiser_Rank', 'Advertiser_Total_Revenue', 'Total_Revenue_By_Offer_Advertiser']],
+        on=['Offer ID', 'Advertiser'],
+        how='left'
+    )
     
     if progress_bar and status_text:
         progress_bar.progress(100)
