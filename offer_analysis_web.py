@@ -347,32 +347,16 @@ def calculate_revenue_ranking(qualified_df):
     # 1. 计算每个(Time, Offer ID, Advertiser)的总收入
     time_offer_advertiser_revenue = filtered_df.groupby(['Time', 'Offer ID', 'Advertiser'])['Total Revenue'].sum().reset_index()
     time_offer_advertiser_revenue.rename(columns={'Total Revenue': 'Time_Offer_Advertiser_Revenue'}, inplace=True)
+
+    time_offer_advertiser_revenue = time_offer_advertiser_revenue.sort_values(
+    by=['Advertiser', 'Time_Offer_Advertiser_Revenue'],  # 优先按广告主排序，同广告主内按收入排序
+    ascending=[True, False],  # Advertiser升序（字母/数字顺序），Revenue降序
+    ignore_index=True)
     
-    # 2. 计算每个Offer+Advertiser的累计总收入
-    offer_advertiser_revenue = time_offer_advertiser_revenue.groupby(['Offer ID', 'Advertiser'])['Time_Offer_Advertiser_Revenue'].sum().reset_index()
-    offer_advertiser_revenue.rename(columns={'Time_Offer_Advertiser_Revenue': 'Total_Revenue_By_Offer_Advertiser'}, inplace=True)
     
-    # 3. 按Advertiser汇总总收入并排序
-    advertiser_total_revenue = offer_advertiser_revenue.groupby('Advertiser')['Total_Revenue_By_Offer_Advertiser'].sum().reset_index()
-    advertiser_total_revenue.rename(columns={'Total_Revenue_By_Offer_Advertiser': 'Advertiser_Total_Revenue'}, inplace=True)
-    # 按总收入降序排序
-    advertiser_total_revenue_sorted = advertiser_total_revenue.sort_values('Advertiser_Total_Revenue', ascending=False)
-    # 添加排序名次
-    advertiser_total_revenue_sorted['Advertiser_Rank'] = range(1, len(advertiser_total_revenue_sorted) + 1)
+   
     
-    # 4. 构建排序映射（Advertiser -> 排名）
-    advertiser_rank_map = dict(zip(
-        advertiser_total_revenue_sorted['Advertiser'],
-        advertiser_total_revenue_sorted['Advertiser_Rank']
-    ))
-    
-    # 5. 为每个Offer+Advertiser添加排名和广告主总收入
-    offer_advertiser_revenue['Advertiser_Rank'] = offer_advertiser_revenue['Advertiser'].map(advertiser_rank_map)
-    offer_advertiser_revenue['Advertiser_Total_Revenue'] = offer_advertiser_revenue['Advertiser'].map(
-        dict(zip(advertiser_total_revenue_sorted['Advertiser'], advertiser_total_revenue_sorted['Advertiser_Total_Revenue']))
-    )
-    
-    return offer_advertiser_revenue
+    return time_offer_advertiser_revenue
 
 # ==================== 核心处理函数（适配Streamlit） ====================
 def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
