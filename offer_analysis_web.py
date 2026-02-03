@@ -344,7 +344,7 @@ def calculate_revenue_ranking(qualified_df):
             (qualified_df['Time'].dt.month == max_date.month)
         ]
     
-    # 1. 计算每个(Time, Offer ID, Advertiser)的总收入
+    #计算每个(Time, Offer ID, Advertiser)的总收入
     time_offer_advertiser_revenue = filtered_df.groupby(['Time', 'Offer ID', 'Advertiser'])['Total Revenue'].sum().reset_index()
     time_offer_advertiser_revenue.rename(columns={'Total Revenue': 'Time_Offer_Advertiser_Revenue'}, inplace=True)
 
@@ -353,7 +353,9 @@ def calculate_revenue_ranking(qualified_df):
     ascending=[True, False],  # Advertiser升序（字母/数字顺序），Revenue降序
     ignore_index=True)
     
-    
+    time_offer_advertiser_revenue['Advertiser_Rank'] = time_offer_advertiser_revenue.groupby('Advertiser')['Time_Offer_Advertiser_Revenue'].rank(
+    method='min', ascending=False).astype(int)
+
    
     
     return time_offer_advertiser_revenue
@@ -1141,16 +1143,15 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         progress_bar.progress(100)
         status_text.text("🎉 处理完成！")
     
-    return final_offer_analysis, enhanced_todo_df, latest_date,revenue_ranking_df
+    return final_offer_analysis, enhanced_todo_df, latest_date
 
 # ==================== 文件下载功能 ====================
-def get_excel_download_link(final_df, todo_df, latest_date,revenue_ranking_df):
+def get_excel_download_link(final_df, todo_df, latest_date):
     """生成Excel文件下载链接"""
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         final_df.to_excel(writer, sheet_name='Offer Analysis', index=False)
         todo_df.to_excel(writer, sheet_name='预算待办事项', index=False)
-        revenue_ranking_df.to_excel(writer, sheet_name='测试', index=False)
     output.seek(0)
     b64 = base64.b64encode(output.read()).decode()
     filename = f"offer_analysis_{latest_date.strftime('%Y%m%d')}.xlsx"
@@ -1275,7 +1276,7 @@ def main():
                             st.markdown("### 📥 下载分析报告")
                             
                             # Offer分析报告下载
-                            st.markdown(get_excel_download_link(final_offer_analysis, todo_df, latest_date,revenue_ranking_df), 
+                            st.markdown(get_excel_download_link(final_offer_analysis, todo_df, latest_date), 
                                       unsafe_allow_html=True)
                             
                             st.success("✅ 分析完成！点击上方链接下载报告")
