@@ -1128,14 +1128,14 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
 
     
     final_offer_analysis = final_offer_analysis.merge(
-        revenue_ranking_df[['Offer ID', 'Advertiser_Rank']],
-        on=['Offer ID'],
+        revenue_ranking_df[['Offer ID','Advertiser','Advertiser_Rank']],
+        on=['Offer ID','Advertiser'],
         how='left'
     )
 
     enhanced_todo_df = enhanced_todo_df.merge(
-        revenue_ranking_df[['Offer ID', 'Advertiser_Rank']],
-        on=['Offer ID'],
+        revenue_ranking_df[['Offer ID','Advertiser','Advertiser_Rank']],
+        on=['Offer ID','Advertiser'],
         how='left'
     )
     
