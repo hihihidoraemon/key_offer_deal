@@ -54,7 +54,82 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ==================== 模板下载功能 ====================
+def create_template_data():
+    """创建Excel模板数据"""
+    # 主数据表模板
+    main_data = pd.DataFrame({})
+    # 黑名单表模板
+    blacklist_data = pd.DataFrame({
+        'Advertiser': ['','','','','','[110008]Shareit','[110037]Shareit_xdj','[110040]Ricefruit','[110047]Jolibox_Appnext_Online_New','[110049]AutumnAds','[110028]mobpower','[110016]Imxbidding','[110045]dolphine','[110045]dolphine','[110045]dolphine','[110021]flymobi','[110021]flymobi','[110021]flymobi','[110022]imxbidding_xdj','[110022]imxbidding_xdj','[110059]Flowbox','[110054]acshare'],
+        'Affiliate': ['[135]bidderdesk_xdj_1','[144]bidderdesk_xdj_2','[113]ioger','[108]Baidu (Hong Kong) Limited','[128]shareit','','','','','','','','[134]ioger_xdj','[136]Bytemobi_xdj','[142]magicbeans_xdj','[134]ioger_xdj','[142]magicbeans_xdj','[136]Bytemobi_xdj','[114]imxbidding','[157]imxbidding_xdj','[111]flowbox_xdj','[155]acshare_xdj']
+    })
+    
+    return main_data, blacklist_data
 
+def get_template_download_link():
+    """生成Excel模板下载链接"""
+    # 创建模板数据
+    main_data, blacklist_data = create_template_data()
+    
+    # 创建Excel文件
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        main_data.to_excel(writer, sheet_name='1-all data', index=False)
+        blacklist_data.to_excel(writer, sheet_name='blacklist', index=False)
+    
+    output.seek(0)
+    b64 = base64.b64encode(output.read()).decode()
+    
+    # 生成下载链接
+    filename = "offer_analysis_template.xlsx"
+    href = f'''
+    <div class="template-download">
+        <p>下载包含标准格式的Excel模板文件，包含数据表和黑名单表</p>
+        <a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" 
+           download="{filename}" class="download-btn">
+           🎯 下载Excel模板
+        </a>
+    </div>
+    '''
+    return href
+
+def get_template_instructions():
+    """返回模板使用说明"""
+    return """
+    ### 📋 Excel模板使用说明
+
+    #### 模板结构：
+    - **1-all data**工作表：主数据表，包含过去30天所有Offer数据
+    - **blacklist**工作表：黑名单配置表，这个表不用修改
+
+    #### 数据表字段说明（1-all data）：
+    | 字段名 | 类型 | 说明 | 示例 |
+    |--------|------|------|------|
+    | Time | 日期 | 数据日期 | 2024-01-25 |
+    | Offer ID | 数字 | Offer唯一标识 | 92054 |
+    | Advertiser | 文本 | 广告主名称 | [110001]APPNEXT |
+    | Affiliate | 文本 | 渠道名称 | [101]Melodong |
+    | App ID | 文本 | 应用标识 | com.example.app1 |
+    | GEO | 文本 | 地区代码 | US |
+    | Total Clicks | 数字 | 总点击量 | 1000 |
+    | Total Conversions | 数字 | 总转化量 | 50 |
+    | Total Revenue | 数字 | 总收入（美元） | 500.50 |
+    | Total Profit | 数字 | 总利润（美元） | 250.25 |
+    | Total Caps | 数字 | 总预算上限 | 1000 |
+    | Status | 文本 | 状态（ACTIVE/PAUSE） | ACTIVE |
+
+    #### 黑名单表字段说明（blacklist）：
+    | 字段名 | 类型 | 说明 | 示例 |
+    |--------|------|------|------|
+    | Advertiser | 文本 | 广告主黑名单（留空表示匹配所有） | [110008]Shareit |
+    | Affiliate | 文本 | 渠道黑名单（留空表示匹配所有） | [113]ioger |
+
+    #### 使用规则：
+    - 如果Advertiser为空：匹配所有该Affiliate的记录
+    - 如果Affiliate为空：匹配所有该Advertiser的记录
+    - 如果两者都不为空：必须同时匹配Advertiser和Affiliate
+    """
 #上下游基础信息
 ADVERTISER_TYPE_MAP = {
     '[110001]APPNEXT': 'xdj流量/inapp流量',
@@ -95,11 +170,13 @@ AFFILIATE_TYPE_MAP = {
     '[106]wldon': 'inapp流量',
     '[131]wldon_new': 'inapp流量',
     '[124]wldon_xdj': 'xdj流量',
-    '[115]synjoy_xdj': 'xdj流量',
+    '[115]synjoy': 'inapp流量',
+    '[158]synjoy_xdj': 'xdj流量',
     '[104]versemedia': 'inapp流量',
     '[122]melodong_xdj': 'xdj流量',
     '[111]flowbox_xdj': 'xdj流量',
-    '[114]imxbidding': 'inapp流量/xdj流量',
+    '[114]imxbidding': 'inapp流量',
+    '[157]imxbidding_xdj': 'xdj流量',
     '[117]ioger_own': 'inapp流量',
     '[139]Versemedia_xdj': 'xdj流量',
     '[143]Alto_xdj': 'xdj流量',
@@ -117,6 +194,7 @@ AFFILIATE_TYPE_MAP = {
     '[155]acshare_xdj':'xdj流量',
     '[144]bidderdesk_xdj_2':'xdj流量',
     '[135]bidderdesk_xdj_1':'xdj流量'
+    
 }
 
 #黑名单机制
@@ -239,63 +317,6 @@ def get_affiliate_revenue_diff(qualified_df, offer_id, affiliate, latest_date, s
     
     return latest_rev - second_rev
 
-
-# ==================== 新增：收入排序计算逻辑 ====================
-def calculate_revenue_ranking(qualified_df):
-    """
-    计算收入排序：
-    - 如果是本月1号，计算所有日期的Total Revenue
-    - 否则，只计算本月所有日期的Total Revenue
-    - 按Advertiser维度汇总并降序排序
-    """
-    # 确保Time列是datetime类型
-    qualified_df = qualified_df.copy()
-    qualified_df['Time'] = pd.to_datetime(qualified_df['Time'], errors='coerce')
-    
-    # 获取数据中的最大日期（判断是否为当月1号的基准）
-    max_date = qualified_df['Time'].max()
-    is_first_day = (max_date.day == 1)
-    
-    # 筛选时间范围
-    if is_first_day:
-        # 本月1号：计算所有日期数据
-        filtered_df = qualified_df
-    else:
-        # 非本月1号：只计算本月数据
-        filtered_df = qualified_df[
-            (qualified_df['Time'].dt.year == max_date.year) & 
-            (qualified_df['Time'].dt.month == max_date.month)
-        ]
-    
-    # 1. 计算每个(Time, Offer ID, Advertiser)的总收入
-    time_offer_advertiser_revenue = filtered_df.groupby(['Time', 'Offer ID', 'Advertiser'])['Total Revenue'].sum().reset_index()
-    time_offer_advertiser_revenue.rename(columns={'Total Revenue': 'Time_Offer_Advertiser_Revenue'}, inplace=True)
-    
-    # 2. 计算每个Offer+Advertiser的累计总收入
-    offer_advertiser_revenue = time_offer_advertiser_revenue.groupby(['Offer ID', 'Advertiser'])['Time_Offer_Advertiser_Revenue'].sum().reset_index()
-    offer_advertiser_revenue.rename(columns={'Time_Offer_Advertiser_Revenue': 'Total_Revenue_By_Offer_Advertiser'}, inplace=True)
-    
-    # 3. 按Advertiser汇总总收入并排序
-    advertiser_total_revenue = offer_advertiser_revenue.groupby('Advertiser')['Total_Revenue_By_Offer_Advertiser'].sum().reset_index()
-    advertiser_total_revenue.rename(columns={'Total_Revenue_By_Offer_Advertiser': 'Advertiser_Total_Revenue'}, inplace=True)
-    # 按总收入降序排序
-    advertiser_total_revenue_sorted = advertiser_total_revenue.sort_values('Advertiser_Total_Revenue', ascending=False)
-    # 添加排序名次
-    advertiser_total_revenue_sorted['Advertiser_Rank'] = range(1, len(advertiser_total_revenue_sorted) + 1)
-    
-    # 4. 构建排序映射（Advertiser -> 排名）
-    advertiser_rank_map = dict(zip(
-        advertiser_total_revenue_sorted['Advertiser'],
-        advertiser_total_revenue_sorted['Advertiser_Rank']
-    ))
-    
-    # 5. 为每个Offer+Advertiser添加排名和广告主总收入
-    offer_advertiser_revenue['Advertiser_Rank'] = offer_advertiser_revenue['Advertiser'].map(advertiser_rank_map)
-    offer_advertiser_revenue['Advertiser_Total_Revenue'] = offer_advertiser_revenue['Advertiser'].map(
-        dict(zip(advertiser_total_revenue_sorted['Advertiser'], advertiser_total_revenue_sorted['Advertiser_Total_Revenue']))
-    )
-    
-    return offer_advertiser_revenue
 
 # ==================== 核心处理函数（适配Streamlit） ====================
 def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
@@ -984,6 +1005,7 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
 
     
 
+            
 
     # 9. 生成最终Excel
 
@@ -1059,28 +1081,10 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
     
     # 去重
     enhanced_todo_df = enhanced_todo_df.drop_duplicates(subset=['Offer ID', 'Affiliate', '待办事项'])
-
-
-    revenue_ranking_df = calculate_revenue_ranking(qualified_df)
-
-    final_offer_analysis = final_offer_analysis.merge(
-        revenue_ranking_df[['Offer ID', 'Advertiser_Rank']],
-        on=['Offer ID'],
-        how='left'
-    )
-
-    enhanced_todo_df = enhanced_todo_df.merge(
-        revenue_ranking_df[['Offer ID', 'Advertiser_Rank']],
-        on=['Offer ID'],
-        how='left'
-    )
-
     
     if progress_bar and status_text:
         progress_bar.progress(100)
         status_text.text("🎉 处理完成！")
-
-    
     
     return final_offer_analysis, enhanced_todo_df, latest_date
 
@@ -1108,17 +1112,19 @@ def main():
         **无需安装任何软件，直接在网页中使用！**
         
         ### 使用步骤：
-        1. 上传Excel数据文件
-        2. 系统自动分析Offer数据  
-        3. 查看分析结果并下载报告
+        1. 下载Excel模板文件
+        2. 按照模板格式填写数据
+        3. 上传填写好的Excel文件
+        4. 系统自动分析并生成报告
+        
         
         ### 支持功能：
         - ✅ 根据最近30天流水数据对高差异Offer智能分析
         - ✅ Affiliate维度精准分析
         - ✅ 一键下载完整报告
         """)
-        
         st.header("⚙️ 分析规则")
+        
         st.info("""
         - 规则1：状态为"PAUSE"，最新一天无流水，次新一天流水>=10美金，排查突然停止流水的Offer
         - 规则2：状态为"PAUSE"，且最新一天流水≥10美金，且与次新一天流水差绝对值≥10美金，监控暂停状态的异常收入波动，防止误暂停。 
@@ -1128,11 +1134,28 @@ def main():
         - 规则6：​状态为"ACTIVE"，预算空间>0，且广告主类型与Affiliate类型匹配，开拓新流量来源
         """)
         
-        st.header("📊 系统信息")
-        st.success("支持Affiliate波动原因分析")
-    
+
     # 主内容区
-    st.markdown("### 📤 第一步：上传Excel文件")
+    st.markdown("### 📥 第一步：下载Excel模板")
+    # 模板下载区域
+    st.markdown(get_template_download_link(), unsafe_allow_html=True)
+
+    # col2 的内容（占满整行宽度）
+    with st.expander("📖 模板说明", expanded=True):
+        st.markdown("""
+        **模板包含：**
+        - 📊 主数据表（1-all data）
+        - ⚠️ 黑名单表（blacklist）
+        - 📝 完整字段说明
+        - 🎯 示例数据
+        """)
+    
+    # 模板使用说明
+    with st.expander("📋 模板详细使用说明", expanded=False):
+        st.markdown(get_template_instructions())
+
+    # 文件上传区域
+    st.markdown("### 📤 第二步：上传Excel文件")
     
     uploaded_file = st.file_uploader(
         "选择Excel文件（支持.xlsx格式）",
