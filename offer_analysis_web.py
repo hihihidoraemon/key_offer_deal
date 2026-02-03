@@ -1138,12 +1138,27 @@ def process_offer_data_web(uploaded_file, progress_bar=None, status_text=None):
         on=['Offer ID','Advertiser'],
         how='left'
     )
+    sort_columns = ['Advertiser', 'Advertiser_Rank']
+    sort_ascending = [True, True]
     
+    # 排序两个数据集，ignore_index=True 重置行索引，导出Excel更整洁
+    final_offer_analysis = final_offer_analysis.sort_values(
+        by=sort_columns,
+        ascending=sort_ascending,
+        ignore_index=True
+    )
+    
+    enhanced_todo_df = enhanced_todo_df.sort_values(
+        by=sort_columns,
+        ascending=sort_ascending,
+        ignore_index=True
+    )       
     if progress_bar and status_text:
         progress_bar.progress(100)
         status_text.text("🎉 处理完成！")
     
     return final_offer_analysis, enhanced_todo_df, latest_date
+    
 
 # ==================== 文件下载功能 ====================
 def get_excel_download_link(final_df, todo_df, latest_date):
