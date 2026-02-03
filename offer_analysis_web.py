@@ -345,7 +345,7 @@ def calculate_revenue_ranking(qualified_df):
         ]
     
     #计算每个(Time, Offer ID, Advertiser)的总收入
-    time_offer_advertiser_revenue = filtered_df.groupby(['Time', 'Offer ID', 'Advertiser'])['Total Revenue'].sum().reset_index()
+    time_offer_advertiser_revenue = filtered_df.groupby(['Offer ID', 'Advertiser'])['Total Revenue'].sum().reset_index()
     time_offer_advertiser_revenue.rename(columns={'Total Revenue': 'Time_Offer_Advertiser_Revenue'}, inplace=True)
 
     time_offer_advertiser_revenue = time_offer_advertiser_revenue.sort_values(
